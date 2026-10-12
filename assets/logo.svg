@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" width="48" height="48">
+  <defs>
+    <linearGradient id="primary-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5145CD" />
+      <stop offset="100%" stop-color="#3828B5" />
+    </linearGradient>
+    <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7B6FE6" />
+      <stop offset="100%" stop-color="#D1CBFF" />
+    </linearGradient>
+  </defs>
+  <!-- Outer Lens Ring -->
+  <circle cx="24" cy="24" r="20" stroke="url(#primary-grad)" stroke-width="3.5" fill="#FAF8FF" />
+  <!-- Iris Aperture Blades -->
+  <path d="M24 10 L30 20 L24 24 Z" fill="url(#primary-grad)" opacity="0.9" />
+  <path d="M34 18 L28 28 L24 24 Z" fill="url(#primary-grad)" opacity="0.8" />
+  <path d="M32 32 L20 30 L24 24 Z" fill="url(#primary-grad)" opacity="0.9" />
+  <path d="M20 34 L18 22 L24 24 Z" fill="url(#primary-grad)" opacity="0.8" />
+  <path d="M14 22 L24 18 L24 24 Z" fill="url(#primary-grad)" opacity="0.85" />
+  <!-- Center Core Lens / Accessibility Eye -->
+  <circle cx="24" cy="24" r="5" fill="#5145CD" />
+  <circle cx="26" cy="22" r="1.5" fill="#FFFFFF" />
+  <!-- Orbiting Verification Nodes -->
+  <circle cx="10" cy="14" r="2.5" fill="#10B981" />
+  <circle cx="38" cy="34" r="2.5" fill="#5145CD" />
+  <circle cx="36" cy="12" r="2" fill="#7B6FE6" />
+</svg>

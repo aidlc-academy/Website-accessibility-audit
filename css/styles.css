@@ -1,0 +1,241 @@
+/* ==========================================================================
+   AccessLens Accessibility Audit Studio — Core & Design Tokens
+   WCAG 2.2 Level AA Compliant Design System
+   ========================================================================== */
+
+:root {
+  --color-surface: #faf8ff;
+  --color-surface-dim: #d5d9f4;
+  --color-surface-bright: #faf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f2ff;
+  --color-surface-container: #ebedff;
+  --color-surface-container-high: #e4e7ff;
+  --color-surface-container-highest: #dde1fd;
+  --color-on-surface: #161b2e;
+  --color-on-surface-variant: #474554;
+  --color-inverse-surface: #2a2f44;
+  --color-inverse-on-surface: #efefff;
+  --color-outline: #777585;
+  --color-outline-variant: #c8c4d6;
+  --color-surface-tint: #5549d1;
+  --color-primary: #3828b5;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #5145cd;
+  --color-on-primary-container: #d2ceff;
+  --color-secondary: #594cc2;
+  --color-secondary-container: #9286ff;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-success: #0d7a5f;
+  --color-success-container: #d1fae5;
+  --color-warning: #c9510c;
+  --color-warning-container: #fef3c7;
+}
+
+/* Base Accessibility & Reset */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-on-surface);
+  background-color: var(--color-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Skip to Main Content Link - WCAG 2.4.1 Bypass Blocks */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: var(--color-primary-container);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  z-index: 9999;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(81, 69, 205, 0.4);
+  transition: top 0.2s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Visible Focus Indicator - WCAG 2.4.7 & 2.4.11 */
+:focus-visible {
+  outline: 3px solid var(--color-primary-container) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(81, 69, 205, 0.25) !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-primary-container) !important;
+  outline-offset: 2px !important;
+}
+
+/* Target Size Minimum 24x24px - WCAG 2.2 SC 2.5.8 */
+button,
+a.interactive-target,
+input[type="checkbox"],
+input[type="radio"],
+.min-target-size {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* 3D Immersive Mode Styles */
+body.mode-3d {
+  background: transparent;
+}
+
+body.mode-3d aside {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 4px 0 24px rgba(22, 27, 46, 0.05);
+}
+
+body.mode-3d header {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+body.mode-3d .glass-card {
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px rgba(81, 69, 205, 0.06);
+}
+
+/* Scanner Beam Animation */
+@keyframes scan-laser {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.scanner-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent 0%, #5145CD 30%, #7B6FE6 50%, #5145CD 70%, transparent 100%);
+  box-shadow: 0 0 16px rgba(81, 69, 205, 0.9), 0 0 32px rgba(123, 111, 230, 0.6);
+  animation: scan-laser 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Reduced Motion Preference - WCAG 2.3.3 */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .scanner-beam {
+    animation: none !important;
+    display: none !important;
+  }
+}
+
+/* Color Vision Deficiency (CVD) Simulation Filters */
+body.cvd-protanopia {
+  filter: url('#protanopia-filter');
+}
+
+body.cvd-deuteranopia {
+  filter: url('#deuteranopia-filter');
+}
+
+body.cvd-tritanopia {
+  filter: url('#tritanopia-filter');
+}
+
+body.cvd-achromatopsia {
+  filter: grayscale(100%) contrast(110%);
+}
+
+/* Tab Order Visual Overlay */
+.tab-order-badge {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: #3828b5;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 40;
+  pointer-events: none;
+  border: 2px solid #ffffff;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-container);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* Print Stylesheet for Audit Reports */
+@media print {
+  aside, header, #canvas-container, .no-print {
+    display: none !important;
+  }
+  .pl-72 {
+    padding-left: 0 !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}

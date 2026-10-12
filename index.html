@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AccessLens — Website Accessibility Audit Assistant (WCAG 2.2 Level AA)" />
+  <title>AccessLens — Website Accessibility Audit Assistant</title>
+
+  <!-- Google Fonts: Manrope, Inter, Material Symbols Outlined -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN with Stitch Design Theme Tokens -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#faf8ff",
+            "surface-dim": "#d5d9f4",
+            "surface-bright": "#faf8ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f3f2ff",
+            "surface-container": "#ebedff",
+            "surface-container-high": "#e4e7ff",
+            "surface-container-highest": "#dde1fd",
+            "on-surface": "#161b2e",
+            "on-surface-variant": "#474554",
+            "inverse-surface": "#2a2f44",
+            "inverse-on-surface": "#efefff",
+            "outline": "#777585",
+            "outline-variant": "#c8c4d6",
+            "surface-tint": "#5549d1",
+            "primary": "#3828b5",
+            "on-primary": "#ffffff",
+            "primary-container": "#5145cd",
+            "on-primary-container": "#d2ceff",
+            "inverse-primary": "#c5c0ff",
+            "secondary": "#594cc2",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#9286ff",
+            "on-secondary-container": "#280d91",
+            "tertiary": "#423e69",
+            "on-tertiary": "#ffffff",
+            "tertiary-container": "#5a5683",
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "success": "#0d7a5f",
+            "success-container": "#d1fae5"
+          },
+          fontFamily: {
+            manrope: ["Manrope", "sans-serif"],
+            inter: ["Inter", "sans-serif"]
+          },
+          spacing: {
+            gutter: "1.5rem",
+            margin: "2rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.5rem"
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface font-inter text-on-surface antialiased mode-3d">
+  <!-- React App Root -->
+  <div id="root"></div>
+
+  <!-- Vite TypeScript Entrypoint -->
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

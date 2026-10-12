@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+data/audits.json
+data/*.tmp
+node_modules/
+dist/
+reports/
