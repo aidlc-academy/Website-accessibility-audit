@@ -77,7 +77,21 @@ An automated scan is **not** a complete accessibility audit and cannot establish
 
 ## Local persistence
 
-Completed audit records, including the URL, scan timestamp/status, full severity-tagged findings, and scanner/WCAG/viewport/timeout configuration, are stored in `data/audits.json`; generated Markdown reports are written to `reports/`. Records remain on disk across page refreshes and backend restarts. JSON is used as a small, dependency-free local database suitable for this single-user development tool. Back up `data/audits.json` and `reports/` to preserve history. Concurrent multi-process writers and production multi-user deployments need a transactional database and authentication, which this local tool does not provide.
+**Storage options:**
+
+AccessLens supports two storage modes:
+
+1. **Local JSON (default)**: Completed audit records are stored in `data/audits.json`; generated Markdown reports are written to `reports/`. Records remain on disk across page refreshes and backend restarts. JSON is used as a small, dependency-free local database suitable for this single-user development tool.
+
+2. **Supabase PostgreSQL (cloud)**: Audit records can be stored in a Supabase PostgreSQL database for cloud persistence, multi-device access, and automatic backups. Set `STORAGE_MODE=supabase` in `.env` and configure Supabase credentials. See `migrations/SUPABASE_SETUP_GUIDE.md` for complete setup instructions.
+
+To migrate existing JSON data to Supabase, run:
+```powershell
+node migrations/migrate-to-supabase.js --dry-run  # Preview
+node migrations/migrate-to-supabase.js            # Import
+```
+
+Back up `data/audits.json` and `reports/` to preserve history. Concurrent multi-process writers and production multi-user deployments need authentication and proper security configuration, which this local tool does not provide by default.
 
 The Scan History view loads these saved records from the backend and reopens full findings by audit ID. Rescans are saved as new records without modifying their baseline; the saved comparison link is used to reconstruct resolved, remaining, and newly detected findings when a rescan is reopened. Comparisons require the same URL and scan configuration and match axe rule IDs plus affected-element selectors. Page content, personalization, and dynamic state can change between scans and affect the comparison. No authentication is configured in this local single-user app.
 

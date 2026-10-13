@@ -13,6 +13,7 @@ import { OverviewView } from './components/views/OverviewView';
 import { ScanProgressView, ScanState } from './components/views/ScanProgressView';
 import { AuditStudioView } from './components/views/AuditStudioView';
 import { FixWorkspaceView } from './components/views/FixWorkspaceView';
+import { VisualizersView } from './components/views/VisualizersView';
 import { ScanHistoryView } from './components/views/ScanHistoryView';
 import { ReportsView } from './components/views/ReportsView';
 import { SettingsView } from './components/views/SettingsView';
@@ -84,9 +85,10 @@ export const App: React.FC = () => {
       if (e.key === '1') setCurrentView('overview');
       else if (e.key === '2') setCurrentView('audit-studio');
       else if (e.key === '3') setCurrentView('fix-workspace');
-      else if (e.key === '4') setCurrentView('scan-history');
-      else if (e.key === '5') setCurrentView('reports');
-      else if (e.key === '6') setCurrentView('settings');
+      else if (e.key === '4') setCurrentView('visualizers');
+      else if (e.key === '5') setCurrentView('scan-history');
+      else if (e.key === '6') setCurrentView('reports');
+      else if (e.key === '7') setCurrentView('settings');
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -265,6 +267,10 @@ export const App: React.FC = () => {
                 <p className="mt-2 text-sm text-on-surface-variant">Run or open an audit and choose one of its findings first.</p>
               </section>
             )
+          )}
+
+          {currentView === 'visualizers' && (
+            <VisualizersView />
           )}
 
           {currentView === 'scan-history' && (

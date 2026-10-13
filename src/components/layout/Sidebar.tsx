@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Overview', icon: 'dashboard' },
   { id: 'audit-studio', label: 'Audit Studio', icon: 'analytics' },
   { id: 'fix-workspace', label: 'Fix Workspace', icon: 'auto_fix_high' },
+  { id: 'visualizers', label: '3D Visualizers', icon: 'view_in_ar' },
   { id: 'scan-history', label: 'Scan History', icon: 'history' },
   { id: 'reports', label: 'Reports', icon: 'description' },
   { id: 'settings', label: 'Settings', icon: 'settings' }

@@ -73,6 +73,7 @@ export type ViewType =
   | 'scan' 
   | 'audit-studio' 
   | 'fix-workspace' 
+  | 'visualizers'
   | 'scan-history' 
   | 'reports' 
   | 'settings';
