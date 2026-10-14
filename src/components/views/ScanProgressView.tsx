@@ -61,6 +61,9 @@ export const ScanProgressView: React.FC<ScanProgressViewProps> = ({
     } else if (scanState.status === 'success') {
       setStages(current => current.map(stage => ({ ...stage, status: 'complete' })));
       setCurrentStageIndex(stages.length);
+      // Auto-navigate to results after brief delay
+      const autoNav = setTimeout(() => onComplete(), 1500);
+      return () => clearTimeout(autoNav);
     } else if (scanState.status === 'error') {
       setStages(current =>
         current.map((stage, idx) =>
@@ -70,7 +73,7 @@ export const ScanProgressView: React.FC<ScanProgressViewProps> = ({
         )
       );
     }
-  }, [scanState.status]);
+  }, [scanState.status, onComplete]);
 
   return (
     <section aria-labelledby="scan-heading" className="flex flex-col w-full">

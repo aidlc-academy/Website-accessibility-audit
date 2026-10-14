@@ -169,6 +169,7 @@ app.post('/api/audits', authenticateToken, async (request, response, next) => {
     try {
       result = await scanUrl(validatedUrl.href, { timeoutMs, signal: cancellation.signal });
     } catch (error) {
+      console.error('Scan error:', error.message, error.stack);
       if (cancellation.signal.aborted) return;
       if (error.message.includes('time limit')) {
         response.status(504).json({ error: error.message });
@@ -193,7 +194,9 @@ app.post('/api/audits', authenticateToken, async (request, response, next) => {
     };
     const report = saveReport(audit);
     audit.reportFilename = report.filename;
+    console.log('Saving audit to database:', audit.id);
     await saveAudit(audit);
+    console.log('Audit saved successfully');
     response.status(201).json({
       audit: {
         ...audit,
