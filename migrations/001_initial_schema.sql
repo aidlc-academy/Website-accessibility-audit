@@ -1,5 +1,5 @@
--- AccessLens Supabase Schema Migration v1
--- Run this in your Supabase SQL Editor after creating a new project
+-- AccessLens audit schema.
+-- Run this first in the Supabase SQL Editor for a new project.
 
 -- Create audits table with JSONB for flexible issue storage
 CREATE TABLE IF NOT EXISTS public.audits (
@@ -32,14 +32,11 @@ CREATE INDEX IF NOT EXISTS idx_audits_url ON public.audits(url);
 CREATE INDEX IF NOT EXISTS idx_audits_status ON public.audits(status);
 CREATE INDEX IF NOT EXISTS idx_audits_compare_to ON public.audits(compare_to_audit_id) WHERE compare_to_audit_id IS NOT NULL;
 
--- Enable Row Level Security (RLS)
+-- The Express backend uses the service-role key. Browser clients must not access
+-- audit data directly; RLS also denies access if a public key is used by mistake.
 ALTER TABLE public.audits ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies
--- IMPORTANT: These policies DENY all direct public/browser access
--- Only the backend service role key can access this table
-
--- Deny all direct access from anon users (browser clients)
+DROP POLICY IF EXISTS "Deny all access to anonymous users" ON public.audits;
 CREATE POLICY "Deny all access to anonymous users"
   ON public.audits
   FOR ALL
@@ -47,7 +44,7 @@ CREATE POLICY "Deny all access to anonymous users"
   USING (false)
   WITH CHECK (false);
 
--- Deny all direct access from authenticated users (if auth is added later)
+DROP POLICY IF EXISTS "Deny all access to authenticated users" ON public.audits;
 CREATE POLICY "Deny all access to authenticated users"
   ON public.audits
   FOR ALL
@@ -55,10 +52,6 @@ CREATE POLICY "Deny all access to authenticated users"
   USING (false)
   WITH CHECK (false);
 
--- Allow service role full access (backend only)
--- Note: The service role key automatically bypasses RLS, but we document this for clarity
-
--- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -67,11 +60,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger to automatically update updated_at
+DROP TRIGGER IF EXISTS set_updated_at ON public.audits;
 CREATE TRIGGER set_updated_at
   BEFORE UPDATE ON public.audits
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 
--- Add comment explaining backend-only access
-COMMENT ON TABLE public.audits IS 'AccessLens audit records. Access restricted to backend service role only. Direct browser/public access is denied via RLS policies.';
+COMMENT ON TABLE public.audits IS 'AccessLens audit records. Access is restricted to the backend service role; direct browser access is denied by RLS.';

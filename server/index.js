@@ -10,6 +10,13 @@ import { findAudit, listAudits, saveAudit } from './storage.js';
 import { generateCsvReport, saveReport } from './reporter.js';
 import { compareAudits } from './comparison.js';
 import { configuredBrowserPath } from './browserConfig.js';
+import {
+  registerUser,
+  loginUser,
+  getUserById,
+  authenticateToken,
+  requireAdmin,
+} from './simpleAuth.js';
 
 const ROOT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const REPORTS_DIR = path.join(ROOT_DIR, 'reports');
@@ -18,12 +25,75 @@ const port = Number(process.env.PORT || 5173);
 const timeoutMs = Number(process.env.SCAN_TIMEOUT_MS || 60000);
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Rate limiting: max 10 scans per IP per hour
+const scanRateLimits = new Map(); // IP -> { count, resetTime }
+const MAX_SCANS_PER_HOUR = 10;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = scanRateLimits.get(ip);
+  
+  if (!record || now > record.resetTime) {
+    scanRateLimits.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: MAX_SCANS_PER_HOUR - 1 };
+  }
+  
+  if (record.count >= MAX_SCANS_PER_HOUR) {
+    const resetInMinutes = Math.ceil((record.resetTime - now) / 60000);
+    return { allowed: false, remaining: 0, resetInMinutes };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: MAX_SCANS_PER_HOUR - record.count };
+}
+
 if (!Number.isInteger(timeoutMs) || timeoutMs < 5000 || timeoutMs > 120000) {
   throw new Error('SCAN_TIMEOUT_MS must be an integer between 5000 and 120000.');
 }
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '4kb' }));
+
+// ============================================================================
+// Authentication Routes (Public)
+// ============================================================================
+
+app.post('/api/auth/register', async (request, response, next) => {
+  try {
+    const { email, password, fullName } = request.body;
+    const user = await registerUser({ email, password, fullName });
+    response.status(201).json({ user, message: 'Registration successful' });
+  } catch (error) {
+    response.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/auth/login', async (request, response, next) => {
+  try {
+    const { email, password } = request.body;
+    const result = await loginUser({ email, password });
+    response.json(result);
+  } catch (error) {
+    response.status(401).json({ error: error.message });
+  }
+});
+
+app.get('/api/auth/me', authenticateToken, async (request, response, next) => {
+  try {
+    const user = await getUserById(request.user.userId);
+    if (!user) {
+      return response.status(404).json({ error: 'User not found' });
+    }
+    response.json({ user });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================================
+// Protected Routes (Require Authentication)
+// ============================================================================
 
 app.get('/api/health', (_request, response) => {
   let browser;
@@ -46,7 +116,7 @@ app.get('/api/health', (_request, response) => {
   response.json({ status: 'ok', scanner: 'axe-core', timeoutMs, browser });
 });
 
-app.get('/api/audits', async (_request, response, next) => {
+app.get('/api/audits', authenticateToken, async (request, response, next) => {
   try {
     const audits = await listAudits();
     response.json({
@@ -60,7 +130,18 @@ app.get('/api/audits', async (_request, response, next) => {
   }
 });
 
-app.post('/api/audits', async (request, response, next) => {
+app.post('/api/audits', authenticateToken, async (request, response, next) => {
+  // Check rate limit
+  const clientIp = request.ip || request.socket.remoteAddress || 'unknown';
+  const rateLimit = checkRateLimit(clientIp);
+  
+  if (!rateLimit.allowed) {
+    response.status(429).json({ 
+      error: `Rate limit exceeded. You can run ${MAX_SCANS_PER_HOUR} scans per hour. Please try again in ${rateLimit.resetInMinutes} minutes.` 
+    });
+    return;
+  }
+
   const targetUrl = request.body?.url;
   if (typeof targetUrl !== 'string' || targetUrl.length > 2048) {
     response.status(400).json({ error: 'Provide a target URL no longer than 2048 characters.' });
@@ -104,6 +185,7 @@ app.post('/api/audits', async (request, response, next) => {
       id: crypto.randomUUID(),
       ...result,
       status: 'completed',
+      userId: request.user.userId,
       standard: 'WCAG 2.2 Level AA',
       viewport: `${result.scanConfiguration.viewport.width}x${result.scanConfiguration.viewport.height}`,
       manualReviewRequired: true,
@@ -128,7 +210,7 @@ app.post('/api/audits', async (request, response, next) => {
   }
 });
 
-app.get('/api/audits/:id', async (request, response, next) => {
+app.get('/api/audits/:id', authenticateToken, async (request, response, next) => {
   try {
     const audit = await findAudit(request.params.id);
     if (!audit) {
@@ -147,7 +229,7 @@ app.get('/api/audits/:id', async (request, response, next) => {
   }
 });
 
-app.get('/api/audits/:id/report', async (request, response, next) => {
+app.get('/api/audits/:id/report', authenticateToken, async (request, response, next) => {
   try {
     const audit = await findAudit(request.params.id);
     if (!audit) {
@@ -166,7 +248,7 @@ app.get('/api/audits/:id/report', async (request, response, next) => {
   }
 });
 
-app.get('/api/audits/:id/export.csv', async (request, response, next) => {
+app.get('/api/audits/:id/export.csv', authenticateToken, async (request, response, next) => {
   try {
     const audit = await findAudit(request.params.id);
     if (!audit) {
@@ -185,7 +267,7 @@ app.get('/api/audits/:id/export.csv', async (request, response, next) => {
   }
 });
 
-app.get('/api/reports', async (_request, response, next) => {
+app.get('/api/reports', authenticateToken, async (_request, response, next) => {
   try {
     const audits = await listAudits();
     response.json({

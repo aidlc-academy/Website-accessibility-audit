@@ -77,23 +77,13 @@ An automated scan is **not** a complete accessibility audit and cannot establish
 
 ## Local persistence
 
-**Storage options:**
+Audit records are stored in a local SQLite database at `data/audits.sqlite`; generated Markdown reports remain in `reports/`. SQLite is built into the supported Node.js runtime, so no database server, credentials, or additional package installation is required. WAL journaling, foreign keys, indexes, and transactional saves are enabled by the backend.
 
-AccessLens supports two storage modes:
+On first startup, AccessLens imports the records in an existing `data/audits.json` exactly once. The JSON file is left unchanged as a backup/source copy. If the import fails, the server reports the error and does not mark the import complete. New audits are saved to SQLite and do not update the legacy JSON file. Back up both `data/audits.sqlite` and `reports/` to preserve the complete local history.
 
-1. **Local JSON (default)**: Completed audit records are stored in `data/audits.json`; generated Markdown reports are written to `reports/`. Records remain on disk across page refreshes and backend restarts. JSON is used as a small, dependency-free local database suitable for this single-user development tool.
+The database contains an `audits` table with searchable audit metadata and the full audit JSON payload, an `audit_issues` table with one row per finding, and a `storage_metadata` table that records the one-time legacy import. The audit API and frontend contract are unchanged. This local single-user app does not coordinate separate AccessLens processes; use a managed transactional database and proper authentication for a multi-user deployment. The Supabase schema in `migrations/` defines backend-only `audits` and `users` tables, but these migrations do not switch the active SQLite storage and file-based authentication to Supabase. See [the Supabase setup guide](./migrations/SUPABASE_SETUP_GUIDE.md) for the schema setup steps.
 
-2. **Supabase PostgreSQL (cloud)**: Audit records can be stored in a Supabase PostgreSQL database for cloud persistence, multi-device access, and automatic backups. Set `STORAGE_MODE=supabase` in `.env` and configure Supabase credentials. See `migrations/SUPABASE_SETUP_GUIDE.md` for complete setup instructions.
-
-To migrate existing JSON data to Supabase, run:
-```powershell
-node migrations/migrate-to-supabase.js --dry-run  # Preview
-node migrations/migrate-to-supabase.js            # Import
-```
-
-Back up `data/audits.json` and `reports/` to preserve history. Concurrent multi-process writers and production multi-user deployments need authentication and proper security configuration, which this local tool does not provide by default.
-
-The Scan History view loads these saved records from the backend and reopens full findings by audit ID. Rescans are saved as new records without modifying their baseline; the saved comparison link is used to reconstruct resolved, remaining, and newly detected findings when a rescan is reopened. Comparisons require the same URL and scan configuration and match axe rule IDs plus affected-element selectors. Page content, personalization, and dynamic state can change between scans and affect the comparison. No authentication is configured in this local single-user app.
+The Scan History view loads these saved records from the backend and reopens full findings by audit ID. Rescans are saved as new records without modifying their baseline; the saved comparison link is used to reconstruct resolved, remaining, and newly detected findings when a rescan is reopened. Comparisons require the same URL and scan configuration and match axe rule IDs plus affected-element selectors. Page content, personalization, and dynamic state can change between scans and affect the comparison. Local account records are stored in a file and are not connected to the Supabase schema.
 
 The test suite includes a browser-based local HTML fixture that demonstrates an image missing alternative text being fixed, and verifies that comparisons distinguish resolved image findings from newly detected button findings. The fixture is scanned via an in-process browser page; it does not add a local-network exception to the production URL scanner.
 
@@ -124,7 +114,7 @@ Review the archive before sharing. Never add `.env`, `data/audits.json`, generat
 
 ## Environment configuration
 
-Copy `.env.example` to `.env` if you need to customize the server port, scan timeout, or Puppeteer browser executable. There are no cloud-service credentials or external authentication integrations configured or required.
+Copy `.env.example` to `.env` if you need to customize the server port, scan timeout, or Puppeteer browser executable. SQLite storage does not require database credentials or a connection string.
 
 ## Project structure
 
@@ -134,7 +124,7 @@ server/
   scanner.js        Puppeteer + axe-core scan engine
   comparison.js     Compatible saved-audit comparison by rule and element
   security.js       URL, DNS, and network destination validation
-  storage.js        Atomic JSON audit persistence
+  storage.js        SQLite audit persistence and one-time JSON import
   reporter.js       Markdown report generation and persistence
 src/
   services/
@@ -142,7 +132,7 @@ src/
   components/
     views/          Overview, scan, findings, history, and reports
 data/
-  audits.json       Created when the first scan completes
+  audits.sqlite     Created on first server startup; imports existing audits.json once
 reports/
   audit-*.md        Generated scan reports
 ```

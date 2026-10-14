@@ -1,97 +1,48 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import {
-  isSupabaseEnabled,
-  listAuditsFromSupabase,
-  findAuditInSupabase,
+// AccessLens storage layer - now using Supabase
+import { 
+  listAuditsFromSupabase, 
+  findAuditInSupabase, 
   saveAuditToSupabase,
+  isSupabaseEnabled,
 } from './supabaseStorage.js';
 
-const ROOT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const DATA_DIR = path.join(ROOT_DIR, 'data');
-const DATABASE_PATH = path.join(DATA_DIR, 'audits.json');
-let writeQueue = Promise.resolve();
-
-// Storage mode: 'json' or 'supabase'
-// Set STORAGE_MODE=supabase in .env to use Supabase
-// Defaults to 'json' for backward compatibility
-const storageMode = process.env.STORAGE_MODE || 'json';
-
-// Validate storage mode
-if (!['json', 'supabase'].includes(storageMode)) {
-  throw new Error(`Invalid STORAGE_MODE: ${storageMode}. Must be 'json' or 'supabase'.`);
+// Verify Supabase is configured on startup
+if (!isSupabaseEnabled()) {
+  throw new Error(
+    'Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env file.'
+  );
 }
 
-// Check Supabase configuration if mode is 'supabase'
-if (storageMode === 'supabase') {
-  if (!isSupabaseEnabled()) {
-    throw new Error(
-      'STORAGE_MODE is set to "supabase" but Supabase is not configured. ' +
-      'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env, or change STORAGE_MODE to "json".'
-    );
-  }
-  console.log('✓ Using Supabase storage mode');
-} else {
-  console.log('✓ Using local JSON storage mode');
-}
+console.log('✓ Using Supabase cloud storage');
 
-// JSON storage functions (original implementation)
-async function listAuditsFromJson() {
-  try {
-    const data = JSON.parse(await fs.readFile(DATABASE_PATH, 'utf8'));
-    if (!Array.isArray(data)) throw new Error('Audit database file must contain a JSON array.');
-    return data;
-  } catch (error) {
-    if (error.code === 'ENOENT') return [];
-    throw error;
-  }
-}
-
-async function findAuditInJson(id) {
-  return (await listAuditsFromJson()).find((audit) => audit.id === id) || null;
-}
-
-function saveAuditToJson(audit) {
-  const save = async () => {
-    const audits = await listAuditsFromJson();
-    audits.unshift(audit);
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    const temporaryPath = `${DATABASE_PATH}.${process.pid}.tmp`;
-    await fs.writeFile(temporaryPath, JSON.stringify(audits, null, 2), 'utf8');
-    await fs.rename(temporaryPath, DATABASE_PATH);
-  };
-  writeQueue = writeQueue.then(save, save);
-  return writeQueue;
-}
-
-// Public API - routes to appropriate storage based on mode
 export async function listAudits() {
-  if (storageMode === 'supabase') {
+  try {
     return await listAuditsFromSupabase();
+  } catch (error) {
+    console.error('Failed to list audits from Supabase:', error.message);
+    throw new Error(`Cloud storage error: ${error.message}`);
   }
-  return await listAuditsFromJson();
 }
 
 export async function findAudit(id) {
-  if (storageMode === 'supabase') {
+  try {
     return await findAuditInSupabase(id);
+  } catch (error) {
+    console.error(`Failed to find audit ${id} in Supabase:`, error.message);
+    throw new Error(`Cloud storage error: ${error.message}`);
   }
-  return await findAuditInJson(id);
 }
 
-export function saveAudit(audit) {
-  if (storageMode === 'supabase') {
-    // Supabase saves are already atomic, no queue needed
-    return saveAuditToSupabase(audit);
+export async function saveAudit(audit) {
+  try {
+    await saveAuditToSupabase(audit);
+  } catch (error) {
+    console.error('Failed to save audit to Supabase:', error.message);
+    throw new Error(`Cloud storage error: ${error.message}`);
   }
-  return saveAuditToJson(audit);
 }
 
+// Legacy function for compatibility
 export function getDatabasePath() {
-  return DATABASE_PATH;
-}
-
-export function getStorageMode() {
-  return storageMode;
+  return 'supabase'; // Not used, but kept for compatibility
 }

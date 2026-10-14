@@ -7,6 +7,7 @@ import {
   ScanConfiguration,
   SeverityTier,
 } from '../types/audit';
+import { getAuthHeaders } from './authApi';
 
 interface ApiAudit {
   id: string;
@@ -65,7 +66,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(url, {
       ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      headers: { ...getAuthHeaders(), ...init?.headers },
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') throw error;

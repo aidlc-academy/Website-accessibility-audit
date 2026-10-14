@@ -2,8 +2,11 @@
 .env.*
 !.env.example
 data/audits.json
+data/*.sqlite*
 data/*.tmp
 node_modules/
 dist/
 reports/
 data/backups/
+
+data/users.json

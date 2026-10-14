@@ -44,27 +44,70 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     if (validateUrl(url)) onStartScan(url.trim());
   };
 
+  const totalScanned = recentTargets.length;
+  const avgScore = recentTargets.length > 0
+    ? Math.round(recentTargets.reduce((sum, t) => sum + (t.stats?.score || 0), 0) / recentTargets.length)
+    : 0;
+
   return (
     <section aria-labelledby="overview-heading" className="flex flex-col w-full">
-      <div className="glass-card relative overflow-hidden bg-surface-container-low rounded-2xl p-6 lg:p-8 mb-8 shadow-sm border border-outline-variant/20">
+      {/* Hero Section */}
+      <div className="glass-card relative overflow-hidden bg-gradient-to-br from-surface-container-low to-primary/5 rounded-2xl p-6 lg:p-8 mb-8 shadow-lg border border-outline-variant/20">
         <div className="absolute -right-12 -top-12 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
+        <div className="absolute -left-12 -bottom-12 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold mb-3 border border-primary/20">
             <span className="material-symbols-outlined text-[16px]" aria-hidden="true">verified</span>
             Automated WCAG 2.2 A/AA checks
           </div>
           <h1 id="overview-heading" className="font-manrope text-2xl sm:text-3xl lg:text-4xl font-extrabold text-on-surface mb-2">
-            Build a web everyone can use.
+            Website Accessibility Audit Tool
           </h1>
           <p className="text-sm lg:text-base text-on-surface-variant mb-6">
-            Scan a public website with axe-core, inspect affected elements, and review actionable guidance.
+            Professional accessibility testing powered by axe-core and Puppeteer. Scan any public website, inspect WCAG violations, and generate comprehensive audit reports.
           </p>
 
-          <div className="bg-surface-container-lowest p-5 lg:p-6 rounded-2xl shadow-md border border-outline-variant/20">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="bg-surface-container-lowest/80 backdrop-blur-sm p-3 rounded-xl border border-outline-variant/20">
+              <p className="text-xs text-on-surface-variant">Websites Scanned</p>
+              <p className="font-manrope text-2xl font-bold text-primary">{totalScanned}</p>
+            </div>
+            <div className="bg-surface-container-lowest/80 backdrop-blur-sm p-3 rounded-xl border border-outline-variant/20">
+              <p className="text-xs text-on-surface-variant">Average Score</p>
+              <p className="font-manrope text-2xl font-bold text-primary">{avgScore}</p>
+            </div>
+            <div className="bg-surface-container-lowest/80 backdrop-blur-sm p-3 rounded-xl border border-outline-variant/20">
+              <p className="text-xs text-on-surface-variant">Total Issues</p>
+              <p className="font-manrope text-2xl font-bold text-error">{stats.total}</p>
+            </div>
+            <div className="bg-surface-container-lowest/80 backdrop-blur-sm p-3 rounded-xl border border-outline-variant/20">
+              <p className="text-xs text-on-surface-variant">Critical Issues</p>
+              <p className="font-manrope text-2xl font-bold text-error">{stats.critical}</p>
+            </div>
+          </div>
+
+          <div className="bg-surface-container-lowest/80 backdrop-blur-sm p-5 lg:p-6 rounded-2xl shadow-md border border-outline-variant/20">
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-              <label htmlFor="url-input" className="text-xs font-bold text-on-surface uppercase tracking-wider">
-                Target website URL <span className="font-normal normal-case text-on-surface-variant">— public HTTP or HTTPS site</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="url-input" className="text-xs font-bold text-on-surface uppercase tracking-wider">
+                  Target website URL <span className="font-normal normal-case text-on-surface-variant">— public HTTP or HTTPS site</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Use a demo website that typically has some accessibility issues
+                    const demoUrl = 'https://example.com/';
+                    setUrl(demoUrl);
+                    setUrlError(null);
+                    setTimeout(() => onStartScan(demoUrl), 100);
+                  }}
+                  className="flex items-center gap-1.5 bg-secondary/10 hover:bg-secondary/20 text-secondary px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">play_circle</span>
+                  Run Demo
+                </button>
+              </div>
               <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
                 <input
                   id="url-input"
