@@ -1,5 +1,7 @@
 # AccessLens — Website Accessibility Audit Assistant
 
+**Note**: This project is now maintained using Kiro IDE. See `.kiro/steering/` for product and technical documentation, and `.kiro/specs/accesslens/` for feature specifications.
+
 AccessLens is a React, TypeScript, and Vite accessibility-audit interface backed by a local Express service. The interface retains its existing design while running real, server-side Puppeteer and axe-core scans.
 
 ## Windows setup and development

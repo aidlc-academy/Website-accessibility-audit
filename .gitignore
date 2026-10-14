@@ -8,5 +8,11 @@ node_modules/
 dist/
 reports/
 data/backups/
-
 data/users.json
+
+# Kiro IDE user settings (not project documentation)
+.kiro/settings/
+
+# Migration backup (temporary, not for repository)
+../.kiro-migration-backup-*/
+baseline-app-hashes.json
